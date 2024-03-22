@@ -19,7 +19,7 @@ func (iflat *IndexFlat) Init(n int32, d int32) {
 	iflat.size = 0
 	iflat.cap = n
 	iflat.dim = d
-	iflat.data = make([]mat.VecDense, n)
+	iflat.data = make([]mat.VecDense, n) // TODO: provide alternative way to store data in disk files, eg. lance??
 }
 
 func (iflat *IndexFlat) Search(x []float64, k int32, metric_type MetricType) ([]int32, [][]float64) {
@@ -53,6 +53,16 @@ func (iflat *IndexFlat) Add(x []float64) {
 
 	iflat.size++
 	iflat.data[iflat.size-1] = *mat.NewVecDense(int(iflat.dim), x)
+}
+
+func (iflat *IndexFlat) BatchAdd(x [][]float64) {
+	if iflat.size+int32(len(x)) > iflat.cap {
+		panic("IndexFlat: BatchAdd: index is full")
+	}
+
+	for i := range x {
+		iflat.Add(x[i])
+	}
 }
 
 func (iflat *IndexFlat) Remove() {
