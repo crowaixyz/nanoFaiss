@@ -1,11 +1,36 @@
 package utils
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"gonum.org/v1/gonum/mat"
 )
+
+var v mat.VecDense
+var u mat.VecDense
+
+func setup() {
+	d := 1024
+
+	rand.NewSource(time.Now().UnixNano())
+
+	vec1 := make([]float64, d)
+	for i := 0; i < d; i++ {
+		vec1[i] = rand.Float64()
+	}
+
+	v = *mat.NewVecDense(d, vec1)
+
+	vec2 := make([]float64, d)
+	for i := 0; i < d; i++ {
+		vec2[i] = rand.Float64()
+	}
+
+	u = *mat.NewVecDense(d, vec2)
+}
 
 func TestL2Distance(t *testing.T) {
 	Convey("L2Distance", t, func() {
@@ -133,4 +158,22 @@ func TestCosineDistance(t *testing.T) {
 			})
 		}
 	})
+}
+
+func BenchmarkL2Distance(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = L2Distance(v, u)
+	}
+}
+
+func BenchmarkIPDistance(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = InnerProductDistance(v, u)
+	}
+}
+
+func BenchmarkCosineDistance(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = CosineDistance(v, u)
+	}
 }

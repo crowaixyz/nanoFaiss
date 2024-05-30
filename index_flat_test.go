@@ -60,8 +60,8 @@ func TestAdd(t *testing.T) {
 				So(index_flat.size, ShouldEqual, int32(len(tt.args.x)))
 
 				for i := 0; i < len(tt.args.x); i++ {
-					fmt.Println(index_flat.data[i])
-					So(index_flat.data[i].RawVector().Data, ShouldResemble, tt.args.x[i])
+					fmt.Println(index_flat.vecs[i])
+					So(index_flat.vecs[i].RawVector().Data, ShouldResemble, tt.args.x[i])
 				}
 			})
 		}
@@ -138,5 +138,4 @@ func TestSearch(t *testing.T) {
 			})
 		}
 	})
-
 }

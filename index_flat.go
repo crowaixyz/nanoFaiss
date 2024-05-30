@@ -12,14 +12,14 @@ type IndexFlat struct {
 	size int32
 	cap  int32
 	dim  int32
-	data []mat.VecDense // data is a slice of vectors, each represented as a gonum VecDense
+	vecs []mat.VecDense // vecs is a slice of vectors, each represented as a gonum VecDense
 }
 
 func (iflat *IndexFlat) Init(n int32, d int32) {
 	iflat.size = 0
 	iflat.cap = n
 	iflat.dim = d
-	iflat.data = make([]mat.VecDense, n) // TODO: provide alternative way to store data in disk files, eg. lance??
+	iflat.vecs = make([]mat.VecDense, n) // TODO: provide alternative way to store data in disk files, eg. lance??
 }
 
 func (iflat *IndexFlat) Search(x []float64, k int32, metric_type MetricType) ([]int32, [][]float64) {
@@ -52,7 +52,7 @@ func (iflat *IndexFlat) Add(x []float64) {
 	}
 
 	iflat.size++
-	iflat.data[iflat.size-1] = *mat.NewVecDense(int(iflat.dim), x)
+	iflat.vecs[iflat.size-1] = *mat.NewVecDense(int(iflat.dim), x)
 }
 
 func (iflat *IndexFlat) BatchAdd(x [][]float64) {
@@ -67,7 +67,7 @@ func (iflat *IndexFlat) BatchAdd(x [][]float64) {
 
 func (iflat *IndexFlat) Remove() {
 	iflat.size = 0
-	iflat.data = nil
+	iflat.vecs = nil
 }
 
 func (iflat *IndexFlat) knn_search_l2_metric(x []float64, k int32) ([]int32, [][]float64) {
@@ -75,7 +75,7 @@ func (iflat *IndexFlat) knn_search_l2_metric(x []float64, k int32) ([]int32, [][
 	distance_max_heap.Init(k)
 
 	for i := int32(0); i < iflat.size; i++ {
-		distance := utils.L2Distance(iflat.data[i], *mat.NewVecDense(int(iflat.dim), x))
+		distance := utils.L2Distance(iflat.vecs[i], *mat.NewVecDense(int(iflat.dim), x))
 
 		if distance_max_heap.Size() < k {
 			distance_max_heap.Push(distance, i)
@@ -95,7 +95,7 @@ func (iflat *IndexFlat) knn_search_l2_metric(x []float64, k int32) ([]int32, [][
 
 	vecs := make([][]float64, len(idxs))
 	for i := range idxs {
-		vecs[i] = iflat.data[idxs[i]].RawVector().Data
+		vecs[i] = iflat.vecs[idxs[i]].RawVector().Data
 	}
 
 	return idxs, vecs
@@ -106,7 +106,7 @@ func (iflat *IndexFlat) knn_search_ip_metric(x []float64, k int32) ([]int32, [][
 	distance_min_heap.Init(k)
 
 	for i := int32(0); i < iflat.size; i++ {
-		distance := utils.InnerProductDistance(iflat.data[i], *mat.NewVecDense(int(iflat.dim), x))
+		distance := utils.InnerProductDistance(iflat.vecs[i], *mat.NewVecDense(int(iflat.dim), x))
 
 		if distance_min_heap.Size() < k {
 			distance_min_heap.Push(distance, i)
@@ -126,7 +126,7 @@ func (iflat *IndexFlat) knn_search_ip_metric(x []float64, k int32) ([]int32, [][
 
 	vecs := make([][]float64, len(idxs))
 	for i := range idxs {
-		vecs[i] = iflat.data[idxs[i]].RawVector().Data
+		vecs[i] = iflat.vecs[idxs[i]].RawVector().Data
 	}
 
 	return idxs, vecs
@@ -137,7 +137,7 @@ func (iflat *IndexFlat) knn_search_cosine_metric(x []float64, k int32) ([]int32,
 	distance_min_heap.Init(k)
 
 	for i := int32(0); i < iflat.size; i++ {
-		distance := utils.CosineDistance(iflat.data[i], *mat.NewVecDense(int(iflat.dim), x))
+		distance := utils.CosineDistance(iflat.vecs[i], *mat.NewVecDense(int(iflat.dim), x))
 
 		if distance_min_heap.Size() < k {
 			distance_min_heap.Push(distance, i)
@@ -157,7 +157,7 @@ func (iflat *IndexFlat) knn_search_cosine_metric(x []float64, k int32) ([]int32,
 
 	vecs := make([][]float64, len(idxs))
 	for i := range idxs {
-		vecs[i] = iflat.data[idxs[i]].RawVector().Data
+		vecs[i] = iflat.vecs[idxs[i]].RawVector().Data
 	}
 
 	return idxs, vecs

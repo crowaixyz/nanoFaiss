@@ -7,10 +7,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func setup() {
-	// do nothing
-}
-
 func TestMain(m *testing.M) {
 	setup()
 	os.Exit(m.Run())
